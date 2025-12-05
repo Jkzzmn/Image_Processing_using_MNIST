@@ -1,0 +1,28 @@
+# Dependencies already installed at GitHub Autograding
+black
+pytest
+pytest-subtests
+tomli
+
+# Use CPU-only PyTorch wheels
+torch
+torchvision
+torchmetrics
+torch-fidelity
+
+# Common packages for inference scripts
+numpy
+tqdm
+pillow
+pyparsing
+matplotlib
+statistics
+Path
+image
+fonttools
+Django
+docutils
+six
+sqlparse
+ddt
+parameterized

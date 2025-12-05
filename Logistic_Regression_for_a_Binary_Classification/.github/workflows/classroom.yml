@@ -1,0 +1,52 @@
+name: Autograding Tests
+'on':
+- push
+- repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: test_setup
+      id: test_setup
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: test_setup
+        setup-command: "
+            bash tests/setup_environment.sh;
+            bash tests/setup_dataset.sh;
+            "
+        command: python -m unittest -v tests.setup_test
+        timeout: 10
+        max-score: 0
+    - name: train
+      id: train
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: train
+        setup-command: ''
+        command: python -m unittest -v tests.eval_train
+        timeout: 10
+        max-score: 50 
+    - name: test
+      id: test
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: test
+        setup-command: ''
+        command: python -m unittest -v tests.eval_test
+        timeout: 10
+        max-score: 50 
+    - name: Autograding Reporter
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        TRAIN_RESULTS: "${{steps.train.outputs.result}}"
+        TEST_RESULTS: "${{steps.test.outputs.result}}"
+      with:
+        runners: "train, test"
