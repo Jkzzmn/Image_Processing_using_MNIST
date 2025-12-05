@@ -1,0 +1,57 @@
+name: Autograding Tests
+'on':
+- workflow_dispatch
+- repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: write
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: test_setup
+      id: test_setup
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: test_setup
+        setup-command: "
+          bash tests/prepare_test.sh;
+          "
+        command: python -m unittest -v tests.run_test
+        timeout: 120 
+        max-score: 0
+    - name: save_result
+      id: save_result
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: save_result 
+        setup-command: ''
+        command: "
+          git config --global user.name 'github-classroom[bot]'; 
+          git config --global user.email 'github-classroom[bot]@users.noreply.github.com'; 
+          git add data/sample;
+          git add result_autograding.csv;
+          git commit -m 'Save samples and autograding results' || echo 'No changes to commit';
+          git push;
+          " 
+        timeout: 120 
+        max-score: 0
+    - name: test
+      id: test
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: test
+        setup-command: ''
+        command: python -m unittest -v tests.eval_test
+        timeout: 120 
+        max-score: 100 
+    - name: Autograding Reporter
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        TEST_RESULTS: "${{steps.test.outputs.result}}"
+      with:
+        runners: "test"
